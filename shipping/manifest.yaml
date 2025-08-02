@@ -64,7 +64,7 @@ spec:
       - name: shipping
         image: nareshkumart/shipping:v1
         resources:
-          requesest:
+          requests:
             cpu: "100m"
             memory: "256Mi"
           limits:
