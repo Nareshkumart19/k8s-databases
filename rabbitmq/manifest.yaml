@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq
+  labels:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+type: Opaque
+data:
+  RABBITMQ_DEFAULT_USER: "cm9ib3Nob3A="
+  RABBITMQ_DEFAULT_PASS: "cm9ib3Nob3AxMjM="
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rebbitmq-service
+  namespace: roboshop
+  labels:
+    component: rebbitmq
+    project: roboshop
+    tier: database
+spec:
+  type: ClusterIP
+  selector:
+    component: rebbitmq
+  ports:
+    - protocol: TCP
+      port: 5672 
+      targetPort: 5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rebbitmq-headless
+  namespace: roboshop
+  labels:
+    component: rebbitmq
+    project: roboshop
+    tier: database
+spec:
+  clusterIP: None
+  selector:
+    component: rebbitmq
+  ports:
+  - protocol: TCP
+    port: 5672 
+    targetPort: 5672
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rebbitmq
+  namespace: roboshop
+  labels:
+    component: rebbitmq
+    project: roboshop
+    tier: database
+spec:
+  serviceName: rebbitmq-headless
+  replicas: 2
+  selector:
+    matchLabels:
+      component: rebbitmq
+      project: roboshop
+      tier: database
+  template:
+    metadata:
+      labels:
+        component: rebbitmq
+        project: roboshop
+        tier: database
+    spec:
+      containers:
+        - name: rebbitmq
+          image: rebbitmq:3
+          envFrom:
+            - secretRef:
+              name: rabbitmq
+          volumeMounts:
+            - name: rebbitmq-data
+              mountPath: /var/lib/rabbitmq
+  volumeClaimTemplates:
+    - metadata:
+        name: rebbitmq-data
+        labels:
+          component: rebbitmq
+          project: roboshop
+          tier: database
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "roboshop-ebs"
+        resources:
+          requests:
+            storage: 2Gi
