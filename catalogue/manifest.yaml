@@ -40,10 +40,10 @@ spec:
         image: nareshkumart/catalogue:v1
         resources:
           requests:
-            cpu: "50"
+            cpu: "50m"
             memory: "128Mi"
           limits:
-            cpu: "100"
+            cpu: "100m"
             memory: "256Mi"
         envFrom:
         - configMapRef:
