@@ -8,8 +8,8 @@ metadata:
     tier: database
 type: Opaque
 data:
-  RABBITMQ_DEFAULT_USER: "cm9ib3Nob3A="
-  RABBITMQ_DEFAULT_PASS: "cm9ib3Nob3AxMjM="
+  RABBITMQ_DEFAULT_USER: "cm9ib3Nob3AK"
+  RABBITMQ_DEFAULT_PASS: "cm9ib3Nob3AxMjMK"
 
 ---
 apiVersion: v1
@@ -78,7 +78,7 @@ spec:
           image: rebbitmq:3
           envFrom:
             - secretRef:
-              name: rabbitmq
+                name: rabbitmq
           volumeMounts:
             - name: rebbitmq-data
               mountPath: /var/lib/rabbitmq
