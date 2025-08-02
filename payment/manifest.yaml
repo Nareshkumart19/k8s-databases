@@ -1,46 +1,61 @@
 apiVersion: v1
 kind: ConfigMap
-metadata: 
-  name: catalogue
+metadata:
+  name: payment
   namespace: roboshop
   labels:
-    component: catalogue
+    component: payment
     project: roboshop
     tier: app
 data:
-  MONGO: "true" 
-  MONGO_URL: "mongodb://mongodb:27017/catalogue"
-
---- 
+  CART_HOST: "cart"
+  CART_PORT: "8080"
+  USER_HOST: "user"
+  USER_PORT: "8080"
+  AMQP_HOST: "rabbitmq"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: payment
+  labels:
+    component: payment
+    project: roboshop
+    tier: app
+type: Opaque
+data:
+  AMQP_USER: "cm9ib3Nob3A="
+  AMQP_PASS: "cm9ib3Nob3AxMjM="
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: catalogue
+  name: payment
   namespace: roboshop
-   # deployment labels
+  # deployment labels
   labels:
-    component: catalogue
+    component: payment
     project: roboshop
     tier: app
 spec:
   replicas: 1
   # These are the labels replica set use to create pod replicas, this should match pod labels
   selector:
-    matchLabels: 
-      component: catalogue
+    matchLabels:
+      component: payment
       project: roboshop
       tier: app
   # This is pod definition
   template:
     metadata:
-      labels: 
-        component: catalogue
+      labels:
+        component: payment
         project: roboshop
         tier: app
     spec:
       containers:
-      - name: catalogue
-        image: nareshkumart/catalogue:v1
+      - name: payment
+        image: joindevops/payment:v1
         resources:
           requests:
             cpu: "50m"
@@ -50,47 +65,45 @@ spec:
             memory: "256Mi"
         envFrom:
         - configMapRef:
-            name: catalogue
+            name: payment
+        - secretRef:
+            name: payment
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: catalogue # service name
+  name: payment
   namespace: roboshop
   labels:
-    component: catalogue
+    component: payment
     project: roboshop
     tier: app
 spec:
   selector:
-    component: catalogue
+    component: payment
     project: roboshop
     tier: app
-  ports: 
-  - name: http
-    protocol:  TCP
+  ports:
+  - protocol: TCP
     port: 8080 # service port
     targetPort: 8080 # container port
-
-
 ---
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: catalogue-hpa # hpa means HorizontalPodAutoscaler
+  name: payment
   namespace: roboshop
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: catalogue
+    name: payment
   minReplicas: 1
   maxReplicas: 10
   metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 10
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
