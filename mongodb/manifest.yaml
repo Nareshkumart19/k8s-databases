@@ -41,9 +41,6 @@ spec:
       containers:
       - name: mongodb
         image: nareshkumart/mongodb:v1
-        ports:
-        - containerPort: 80
-          name: web
         volumeMounts:
         - name: mongodb-data
           mountPath: /data/db 
