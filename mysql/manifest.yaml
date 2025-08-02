@@ -1,4 +1,17 @@
 apiVersion: v1
+kind: Secret
+metadata: 
+  name: mysql
+  labels:
+    component: mysql
+    project: roboshop
+    tier: database
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: "Um9ib1Nob3BAMQ=="
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: mysql-headless-svc  # service name 
@@ -63,9 +76,9 @@ spec:
       containers:
       - name: mysql
         image: nareshkumart/mysql:v1
-        ports:
-        - containerPort: 80
-          name: web
+        envFrom:
+        - secretRef:
+            name: mysql
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
