@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: ConfigMap
-metadata: 
+metadata:
   name: user
   namespace: roboshop
   labels:
@@ -8,90 +8,85 @@ metadata:
     project: roboshop
     tier: app
 data:
-  MONGO: "true"
-  REDIS_URL: "redis://redis:6379"
   MONGO_URL: "mongodb://mongodb:27017/users"
-
+  REDIS_URL: "redis://redis:6379"
+  MONGO: "true"
 ---
-apiVersion: v1
-kind: service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: user
   namespace: roboshop
-  labels: 
-    compenent: user
+  # deployment labels
+  labels:
+    component: user
+    project: roboshop
+    tier: app
+spec:
+  replicas: 1
+  # These are the labels replica set use to create pod replicas, this should match pod labels
+  selector:
+    matchLabels:
+      component: user
+      project: roboshop
+      tier: app
+  # This is pod definition
+  template:
+    metadata:
+      labels:
+        component: user
+        project: roboshop
+        tier: app
+    spec:
+      containers:
+      - name: user
+        image: nareshkumart/user:v1
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "100m"
+            memory: "256Mi"
+        envFrom:
+        - configMapRef:
+            name: user
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+  namespace: roboshop
+  labels:
+    component: user
     project: roboshop
     tier: app
 spec:
   selector:
-    compenent: user
+    component: user
     project: roboshop
-    tier: app  
-  port:  
-  - protocal: TCP
-    port: 8080
-    targetPort: 8080
-
+    tier: app
+  ports:
+  - protocol: TCP
+    port: 8080 # service port
+    targetPort: 8080 # container port
 ---
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-    name: user
-    namespace: roboshop
-    labels: 
-      compenent: user
-      project: roboshop
-      tier: app
-spec:
-  replicas: 1
-  selector:
-    matchLabels: 
-      compenent: user
-      project: roboshop
-      tier: app
-  template:
-    metadata:
-    labels: 
-      compenent: user
-      project: roboshop
-      tier: app
-    spec:
-      containers:
-        - name: user
-          images: nareshkumart/user:v1
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "128Mi"
-            limits:          
-              cpu: "100m"
-              memory: "256Mi"
-          envFrom:
-          - configMapRef:
-              name: user
-
---- 
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: user-hpa # hpa means HorizontalPodAutoscaler
+  name: user
   namespace: roboshop
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: catalogue
+    name: user
   minReplicas: 1
   maxReplicas: 10
   metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 10
-      
-
-
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
