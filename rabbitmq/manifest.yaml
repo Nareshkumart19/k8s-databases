@@ -15,16 +15,16 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rebbitmq-service
+  name: rabbitmq-service
   namespace: roboshop
   labels:
-    component: rebbitmq
+    component: rabbitmq
     project: roboshop
     tier: database
 spec:
   type: ClusterIP
   selector:
-    component: rebbitmq
+    component: rabbitmq
   ports:
     - protocol: TCP
       port: 5672 
@@ -33,16 +33,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rebbitmq-headless
+  name: rabbitmq-headless
   namespace: roboshop
   labels:
-    component: rebbitmq
+    component: rabbitmq
     project: roboshop
     tier: database
 spec:
   clusterIP: None
   selector:
-    component: rebbitmq
+    component: rabbitmq
   ports:
   - protocol: TCP
     port: 5672 
@@ -52,41 +52,41 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rebbitmq
+  name: rabbitmq
   namespace: roboshop
   labels:
-    component: rebbitmq
+    component: rabbitmq
     project: roboshop
     tier: database
 spec:
-  serviceName: rebbitmq-headless
+  serviceName: rabbitmq-headless
   replicas: 2
   selector:
     matchLabels:
-      component: rebbitmq
+      component: rabbitmq
       project: roboshop
       tier: database
   template:
     metadata:
       labels:
-        component: rebbitmq
+        component: rabbitmq
         project: roboshop
         tier: database
     spec:
       containers:
-        - name: rebbitmq
-          image: rebbitmq:3
+        - name: rabbitmq
+          image: rabbitmq:3 
           envFrom:
             - secretRef:
                 name: rabbitmq
           volumeMounts:
-            - name: rebbitmq-data
+            - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq
   volumeClaimTemplates:
     - metadata:
-        name: rebbitmq-data
+        name: rabbitmq-data
         labels:
-          component: rebbitmq
+          component: rabbitmq
           project: roboshop
           tier: database
       spec:
